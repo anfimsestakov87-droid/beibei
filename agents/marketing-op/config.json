@@ -1,0 +1,75 @@
+{
+  "api": {
+    "base_url": "https://api.pb76mv.vip/api/v2/plat/60051",
+    "rank_endpoint": "/rank/game",
+    "game_list_endpoint": "/game/list",
+    "site_url": "https://ltyl777.com",
+    "headers": {
+      "Referer": "https://ltyl777.com/",
+      "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+      "Accept": "application/json, text/plain, */*"
+    },
+    "params": {
+      "plat_id": "60051",
+      "coin_name_unique": "CNY",
+      "user_id": "6012110976",
+      "token": "==wM4gjMyETN3cTMjQjY4EDZ3IGO0gzMyITNzIjYjJTY3EzY0EDNwATN4ATZjYzN5ATMxITMwYzIhhDZkVDMihDOiZTZ2ITZjNmN4UGO4QWO2UGNmdDNyQ2IzIjOxQjO3EDIyATL0ATL2IDMyMiM",
+      "lang": "zh_CN",
+      "device_type": "3",
+      "app_type": "4",
+      "device": "894ff616-9b3a-454c-a77b-9345eca42db0",
+      "channel_id": "60051002",
+      "game_domain": "ltyl777.com",
+      "app_plat_type": "3"
+    }
+  },
+  "game_url_map": {
+    "slot": "https://ltyl777.com/zh-CN/slot/{id}",
+    "live": "https://ltyl777.com/zh-CN/game_play2/{id}"
+  },
+  "known_live_games": [
+    29916
+  ],
+  "vendor_map": {
+    "PG": [
+      24630,
+      24678,
+      24631,
+      24650,
+      35161,
+      24577,
+      24677,
+      33410,
+      34955,
+      24670,
+      24579,
+      24627,
+      24659,
+      24590,
+      24684,
+      33712,
+      33080,
+      31200,
+      25806,
+      25807,
+      28812,
+      35174,
+      35175
+    ],
+    "JDB": [
+      9454,
+      9483
+    ],
+    "EVO": [
+      29916,
+      29917
+    ],
+    "JILI": [
+      23502,
+      23536
+    ],
+    "CQ9": [
+      26678
+    ]
+  }
+}
