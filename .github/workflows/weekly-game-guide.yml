@@ -1,0 +1,86 @@
+name: weekly-game-guide
+
+on:
+  schedule:
+    - cron: '0 0 * * 2'  # Every Tuesday 0:00 UTC (9:00 JST)
+  workflow_dispatch:      # Allow manual trigger
+
+jobs:
+  send-game-guide:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Send game guide
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python3 - <<'EOF'
+          import os, sys, urllib.request, json
+          from pathlib import Path
+          from datetime import datetime
+
+          guides_dir = Path('agents/marketing-op/content-library/game-guides')
+          guide_files = sorted(guides_dir.glob('*.md'))
+
+          if not guide_files:
+              print("No game guide files found.")
+              sys.exit(1)
+
+          # Rotate by week number
+          week_num = datetime.now().isocalendar()[1]
+          guide_file = guide_files[week_num % len(guide_files)]
+          print(f"Using guide: {guide_file.name} (week {week_num})")
+
+          content = guide_file.read_text(encoding='utf-8')
+
+          # Extract 96.com channel section if present, else use full content
+          if '96.com' in content or '96版' in content:
+              lines = content.split('\n')
+              start = None
+              section_lines = []
+              for i, line in enumerate(lines):
+                  if '96' in line and ('版' in line or '.com' in line or '频道' in line):
+                      start = i
+                  if start is not None:
+                      section_lines.append(line)
+                      # Stop at next major section header (## or ---) after we've collected some content
+                      if len(section_lines) > 3 and (line.startswith('## ') or line.startswith('---')):
+                          section_lines = section_lines[:-1]
+                          break
+              if section_lines:
+                  content = '\n'.join(section_lines).strip()
+
+          # Truncate to Telegram's 4096 char limit
+          if len(content) > 4096:
+              content = content[:4090] + '...'
+
+          token = os.environ['TELEGRAM_BOT_TOKEN']
+          chat_id = os.environ['TELEGRAM_CHAT_ID']
+
+          data = json.dumps({
+              'chat_id': chat_id,
+              'text': content,
+              'parse_mode': 'Markdown',
+              'disable_web_page_preview': True
+          }).encode('utf-8')
+
+          req = urllib.request.Request(
+              f'https://api.telegram.org/bot{token}/sendMessage',
+              data=data,
+              headers={'Content-Type': 'application/json; charset=utf-8'}
+          )
+          try:
+              resp = urllib.request.urlopen(req)
+              result = json.loads(resp.read())
+              print(f"✅ Sent: message_id={result['result']['message_id']}")
+          except urllib.error.HTTPError as e:
+              print(f"❌ HTTP Error: {e.code} {e.read()}")
+              sys.exit(1)
+          EOF

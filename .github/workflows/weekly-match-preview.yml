@@ -1,0 +1,55 @@
+name: weekly-match-preview
+
+on:
+  schedule:
+    - cron: '0 0 * * 5'  # Every Friday 0:00 UTC (9:00 JST)
+  workflow_dispatch:      # Allow manual trigger
+
+jobs:
+  send-match-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Generate and send match preview
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          cd agents/marketing-op
+          python3 generate-match-post.py > /tmp/message.txt
+          cat /tmp/message.txt
+          python3 - <<'EOF'
+          import os, sys, urllib.request, json
+
+          with open('/tmp/message.txt', 'r') as f:
+              text = f.read().strip()
+
+          if not text:
+              print("No matches found, skipping.")
+              sys.exit(0)
+
+          token = os.environ['TELEGRAM_BOT_TOKEN']
+          chat_id = os.environ['TELEGRAM_CHAT_ID']
+
+          data = json.dumps({
+              'chat_id': chat_id,
+              'text': text,
+              'parse_mode': 'Markdown',
+              'disable_web_page_preview': True
+          }).encode('utf-8')
+
+          req = urllib.request.Request(
+              f'https://api.telegram.org/bot{token}/sendMessage',
+              data=data,
+              headers={'Content-Type': 'application/json; charset=utf-8'}
+          )
+          resp = urllib.request.urlopen(req)
+          result = json.loads(resp.read())
+          print(f"✅ Sent: message_id={result['result']['message_id']}")
+          EOF
