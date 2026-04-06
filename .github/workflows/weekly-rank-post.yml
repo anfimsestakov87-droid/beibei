@@ -30,8 +30,20 @@ jobs:
           python3 - <<'EOF'
           import os, sys, urllib.request, json
 
+          import re
+
           with open('/tmp/message.txt', 'r') as f:
               text = f.read().strip()
+
+          # Convert Markdown [text](url) links to HTML <a href="url">text</a>
+          def md_to_html(t):
+              # Escape HTML special chars first (excluding already-converted links)
+              t = t.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+              # Convert [text](url) to HTML links
+              t = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'<a href="\2">\1</a>', t)
+              return t
+
+          text = md_to_html(text)
 
           token = os.environ['TELEGRAM_BOT_TOKEN']
           chat_id = os.environ['TELEGRAM_CHAT_ID']
@@ -39,7 +51,7 @@ jobs:
           data = json.dumps({
               'chat_id': chat_id,
               'text': text,
-              'parse_mode': 'Markdown',
+              'parse_mode': 'HTML',
               'disable_web_page_preview': True
           }).encode('utf-8')
 
