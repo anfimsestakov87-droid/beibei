@@ -28,8 +28,11 @@
     "live": "https://ltyl777.com/zh-CN/game_play2/{id}"
   },
   "known_live_games": [
-    29916
+    29916,
+    29988
   ],
+  "live_vendor_types": [],
+  "vendor_type_map": {},
   "vendor_map": {
     "PG": [
       24630,
