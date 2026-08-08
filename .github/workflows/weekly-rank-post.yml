@@ -2,7 +2,7 @@ name: weekly-rank-post
 
 on:
   schedule:
-    - cron: '0 0 * * 4'  # Every Thursday 0:00 UTC (9:00 JST)
+    - cron: '0 1 * * 4'  # Every Thursday 01:00 UTC = 09:00 台北 (GMT+8)
   workflow_dispatch:      # Allow manual trigger
 
 jobs:
@@ -34,6 +34,18 @@ jobs:
 
           with open('/tmp/message.txt', 'r') as f:
               text = f.read().strip()
+
+          # 保险丝：脚本的日志一律走 stderr，stdout 只该有文案。
+          # 万一有日志漏进来（或文案是空的），宁可不发，也不要发出脏贴文。
+          if not text:
+              print('❌ 文案为空，中止发送')
+              sys.exit(1)
+          if not text.startswith('💸') or any(
+              m in text for m in ('✅ 自动登录', '⚠️', '❌', 'Traceback')
+          ):
+              print('❌ 侦测到日志混入文案，中止发送')
+              print(text[:500])
+              sys.exit(1)
 
           # Convert Markdown [text](url) links to HTML <a href="url">text</a>
           def md_to_html(t):
